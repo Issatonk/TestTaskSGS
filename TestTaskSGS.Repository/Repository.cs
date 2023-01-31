@@ -15,8 +15,14 @@ namespace TestTaskSGS.Repository
         }
         public async Task<Core.Entities.CbrDaily> Get()
         {
-            if(_response == null || _response.Timestamp.Date != DateTime.Now.Date || _response.Timestamp.Hour != DateTime.Now.Hour) 
-            {
+            const int startWork = 8;
+            const int endWork = 20;
+            if(_response == null 
+                || _response.Timestamp.Date != DateTime.Now.Date 
+                || (_response.Timestamp.Hour != DateTime.Now.Hour 
+                && DateTime.Now.Hour >= startWork 
+                && DateTime.Now.Hour <= endWork)) 
+            { 
                 using (HttpClient client = new HttpClient())
                 {
                     _response = await client.GetFromJsonAsync<CbrDaily>("https://www.cbr-xml-daily.ru/daily_json.js");

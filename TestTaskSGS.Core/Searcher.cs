@@ -24,7 +24,7 @@ namespace TestTaskSGS.Core
                     valute = valutes.Values.Where(x => x.ID == searchRequest).FirstOrDefault();
                     break;
                 case SearchParameter.SearchByCharKey:
-                    valute = valutes.FirstOrDefault(x => x.Key == searchRequest).Value;
+                    valute = valutes.FirstOrDefault(x => x.Key == searchRequest.ToUpper()).Value;
                     break;
             }
             return valute;
