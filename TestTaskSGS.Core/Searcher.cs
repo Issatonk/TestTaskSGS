@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.Runtime.CompilerServices;
-using TestTaskSGS.Core.Entities;
+﻿using TestTaskSGS.Core.Entities;
 
 namespace TestTaskSGS.Core
 {
