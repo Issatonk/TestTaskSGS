@@ -6,7 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddSingleton<IRepository, Repository>();
+builder.Services.AddTransient<IRepository, Repository>();
+builder.Services.AddMemoryCache();
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<RepositoryMappingProfile>();
