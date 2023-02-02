@@ -10,6 +10,8 @@ GET /currency/ — должен возвращать курс валюты дл�
 
 На реализацию потрачено около 4-5 часов
 
+[Ветка с использованием MemoryCache](https://github.com/Issatonk/TestTaskSGS/tree/MemoryCache)
+
 ## Screnshots
 
 ### Start page /currencies/{page}?pagesise=
