@@ -22,7 +22,7 @@ namespace TestTaskSGS.Controllers
             var childSpan = _sentryHub.GetSpan()?.StartChild("GetCurrenciesPage");
             try
             {
-                var result = await _repository.Get();
+                var result = await _repository.Get(token);
                 if (result == null || result.Valute == null)
                 {
                     throw new BadHttpRequestException("currency rates not found");
@@ -54,7 +54,7 @@ namespace TestTaskSGS.Controllers
             var childSpan = _sentryHub.GetSpan()?.StartChild("GetCurrency");
             try
             {
-                var result = await _repository.Get();
+                var result = await _repository.Get(token);
 
                 if (result == null || result.Valute == null)
                 {
