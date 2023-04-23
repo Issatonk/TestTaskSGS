@@ -15,25 +15,24 @@ namespace TestTaskSGS.Repository
             _mapper = mapper;
             _memoryCache = memoryCache;
         }
-        public async Task<Core.Entities.CbrDaily> Get()
+        public async Task<Core.Entities.CbrDaily> Get(CancellationToken token)
         {
 
             _memoryCache.TryGetValue(DateTime.Now.Date, out CbrDaily? cbrDaily);
-
             try
             {
                 if (cbrDaily == null)
                 {
                     using (HttpClient client = new HttpClient())
                     {
-                        cbrDaily = await client.GetFromJsonAsync<CbrDaily>("https://www.cbr-xml-daily.ru/daily_json.js");
+                        cbrDaily = await client.GetFromJsonAsync<CbrDaily>("https://www.cbr-xml-daily.ru/daily_json.js",token);
                         _memoryCache.Set(DateTime.Now.Date, cbrDaily, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)});
                     }
                 }
             }
             catch (Exception ex)
             {
-                return null;
+                throw;
             }
             
 

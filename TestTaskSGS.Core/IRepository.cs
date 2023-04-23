@@ -4,6 +4,6 @@ namespace TestTaskSGS.Core
 {
     public interface IRepository
     {
-        Task<CbrDaily> Get();
+        Task<CbrDaily> Get(CancellationToken token);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Sentry;
 using System.Diagnostics;
 using TestTaskSGS.Core;
 using TestTaskSGS.Models;
@@ -7,57 +8,70 @@ namespace TestTaskSGS.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
         private readonly IRepository _repository;
-        public HomeController(ILogger<HomeController> logger, IRepository repository)
+        private readonly IHub _sentryHub;
+        public HomeController(IRepository repository, IHub sentryHub)
         {
-            _logger = logger;
             _repository = repository;
+            _sentryHub = sentryHub;
         }
 
         [Route("currencies/{page}")]
-        public async Task<IActionResult> Сurrencies(int page = 1, int pagesize = 10)
+        public async Task<IActionResult> Сurrencies(CancellationToken token, int page = 1, int pagesize = 10)
         {
-            
-            var result = await _repository.Get();
-            
-            if (result == null || result.Valute == null)
+            var childSpan = _sentryHub.GetSpan()?.StartChild("GetCurrenciesPage");
+            try
             {
-                return RedirectToAction(nameof(Error));
+                var result = await _repository.Get();
+                if (result == null || result.Valute == null)
+                {
+                    throw new BadHttpRequestException("currency rates not found");
+                }
+
+                var totalPages = Pager.GetTotalPages(result.Valute.Count, pagesize);
+
+                if (page <= 0 || page > totalPages)
+                {
+                    return RedirectToAction(nameof(Сurrencies), new { page = 1, pagesize });
+                }
+
+                result = result.PaginationMethod(page, pagesize);
+                var currencies = new CurrenciesViewModel(result.Date, result.Timestamp, result.Valute, totalPages, page, pagesize);
+
+                childSpan?.Finish(SpanStatus.Ok);
+                return View(currencies);
             }
-
-            var totalPages = Pager.GetTotalPages(result.Valute.Count, pagesize);
-
-            if (page <= 0 || page > totalPages)
+            catch(Exception ex)
             {
-                return RedirectToAction(nameof(Сurrencies), new {page = 1, pagesize});
+                childSpan?.Finish(ex);
+                throw;
             }
-
-            result = result.PaginationMethod(page, pagesize);
-            var currencies = new CurrenciesViewModel(result.Date, result.Timestamp, result.Valute, totalPages, page, pagesize);
-            
-            return View(currencies);
         }
 
         [Route("currency/")]
-        public async Task<IActionResult> CurrencyAsync(string search, SearchParameter searchParameter = SearchParameter.SearchById)
+        public async Task<IActionResult> CurrencyAsync(string search, CancellationToken token, SearchParameter searchParameter = SearchParameter.SearchById)
         {
-            var result = await _repository.Get();
-
-            if (result == null || result.Valute == null)
+            var childSpan = _sentryHub.GetSpan()?.StartChild("GetCurrency");
+            try
             {
-                return RedirectToAction(nameof(Error));
+                var result = await _repository.Get();
+
+                if (result == null || result.Valute == null)
+                {
+                    throw new BadHttpRequestException("currency rates not found");
+                }
+
+                var valute = result.Valute.Search(search, searchParameter);
+
+                var viewModel = new CurrencyViewModel(result.Date, result.Timestamp, valute);
+                childSpan?.Finish(SpanStatus.Ok);
+                return View(viewModel);
             }
-
-            var valute = result.Valute.Search(search, searchParameter);
-
-            if(valute == null)
+            catch(Exception ex)
             {
-                return RedirectToAction(nameof(Error));
+                childSpan.Finish(ex);
+                throw;
             }
-
-            var viewModel = new CurrencyViewModel(result.Date, result.Timestamp, valute);
-            return View(viewModel);
         }
 
         public IActionResult Privacy()
